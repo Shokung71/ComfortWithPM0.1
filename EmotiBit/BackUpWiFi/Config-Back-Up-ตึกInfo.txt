@@ -1,1 +1,0 @@
-{"WifiCredentials": [{"ssid": "IICE-WiFI", "password" : "admin@123"}]}
