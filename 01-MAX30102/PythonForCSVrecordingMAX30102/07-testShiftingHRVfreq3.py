@@ -20,8 +20,10 @@ def ProcessingHrvFreq(ppg_df, window_size, sampling_rate):
 
             ppg_cleaned = nk.ppg_clean(ppg_df["PI"], sampling_rate=sampling_rate)
 
+            ppg_normalized = nk.rescale(ppg_cleaned, to=[-1, 1])
+
             hrv_results = []
-            for start in range(0, len(ppg_cleaned) - window_samples, sampling_rate):
+            for start in range(0, len(ppg_normalized) - window_samples, sampling_rate):
                 end = start + window_samples
                 window = ppg_cleaned[start:end]
                 start_time = ppg_df['Timestamp'].iloc[start]
@@ -60,12 +62,19 @@ def ProcessingHrvFreq(ppg_df, window_size, sampling_rate):
             window_samples = window_size * sampling_rate
             ppg_df["Timestamp"] = pd.to_datetime(ppg_df["Timestamp"], dayfirst=True)
 
-            ppg_cleaned = nk.ppg_clean(ppg_df["IR"], sampling_rate=sampling_rate)
+            ppg_filtered = nk.signal_filter(ppg_df["IR"],
+                                            sampling_rate=sampling_rate,
+                                            lowcut=0.5, highcut=5,
+                                            method="bessel", order=5)
+            ppg_cleaned = nk.ppg_clean(ppg_filtered, sampling_rate=sampling_rate)
+            ppg_normalized = nk.rescale(ppg_cleaned, to=[-1, 1])
             hrv_results = []
 
-            for start in range(0, len(ppg_cleaned) - window_samples, sampling_rate):
+
+            # range 0, len(ppg)
+            for start in range(0, len(ppg_normalized) - window_samples, sampling_rate):
                 end = start + window_samples
-                window = ppg_cleaned[start:end]
+                window = ppg_normalized[start:end]
                 start_time = ppg_df['Timestamp'].iloc[start]
 
                 if start % 30 == 0:
